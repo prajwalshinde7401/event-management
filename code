@@ -1,0 +1,301 @@
+# Sports Event Management System
+import sys
+import random
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from PIL import Image
+from PIL import ImageDraw , ImageFont
+temp = Image.open(r"/content/ticket_background.jfif").resize((500,240))
+font = ImageFont.truetype(r"/content/OpenSans-Light.ttf",size = 27)
+class Event:
+    def __init__(self,title,teams,start_date,sponcers,digi_rights= None,Cards = None):
+        self.digi_rights = input("Enter the Channel for digital rights")
+        self.title = title 
+        self.teams = teams
+        self.day = int(start_date.split('/')[0])
+        self.month = int(start_date.split('/')[1])
+        self.yr = int(start_date.split('/')[2])
+        M = calendar(self.day,self.month,self.yr)
+        self.sponcers = pd.DataFrame(sponcers)
+        self.Cards = []
+    def set_digi_rights(self,digi_rights):
+        self.digi_rights = digi_rights
+    def get_digi_rights(self):
+        return self.digi_rights
+    def set_title(self,title):
+        self.title = title
+    def get_title(self):
+        return self.title
+    def set_schedule(self,teams):
+        M = calendar(self.day,self.month,self.yr)
+        B = list(teams.keys())
+        # This gives the list of teams that are going to participate
+        self.schedule = pd.DataFrame({'Match':[],'date':[],'venue':[]})
+        #Creation of chart
+        Matches = []
+        venue = []
+        date = []
+        #Number of Matches is nom
+        nom = len(B)*(len(B)-1)
+        while len(Matches)<len(B)*(len(B)-1):
+            i = random.randint(0,len(B)-1)
+            j = random.randint(0,len(B)-1)
+            # Same Match should not be repeated 
+            if (B[i] +"_vs_" + B[j]) not in Matches and i!= j:
+                Matches += [B[i] + "_vs_" + B[j]]
+                venue = venue + [B[i]]
+                date = date + [M.advance()]
+            else:
+                continue
+        self.schedule['Match'] = Matches
+        self.schedule['venue'] = venue
+        self.schedule['date'] = date
+        self.schedule['Channel'] = self.digi_rights
+        Z = self.schedule
+        # Now we create instance of each match
+
+        for i in range(nom):
+            no = i + 1
+            name = Z.loc[i]['Match']
+            limit = 20
+            date = Z.loc[i]['date'] 
+            globals()[Z.loc[i]['Match']] = Match(no,name,date,limit)
+    
+    def add_team(self,team):
+        self.teams.update(team)
+    
+    def get_teams(self):
+        return self.teams
+    
+    def get_schedule(self):
+        return self.schedule
+    def set_teams(self,team):
+        teams[str(team)] = team
+        
+    def get_teams(self):
+        return self.teams
+    
+    def set_sponcers(self,sponcers):
+        self.sponcers = pd.DataFrame(sponcers)
+    def get_sponcers(self):
+        return self.sponcers
+
+    def cards(self):
+        B = list(teams.keys())
+        nom = len(B)*(len(B)-1)
+        Z = self.schedule
+        for i in range(nom):
+            temp = temp = Image.open(r"/content/ticket_background.jfif").resize((500,240))
+            font = ImageFont.truetype(r"/content/OpenSans-Light.ttf",size = 27)
+            draw = ImageDraw.Draw(temp)
+            no = i +1
+            name = Z.loc[i]['Match']
+            limit = 20
+            date = Z.loc[i]['date']
+            draw.text((90,40),"Match Title :" + str(name),font = font,fill = 'black')
+            draw.text((90,80),"Match No :" + str(no),font = font,fill = 'black')
+            draw.text((90,120),"Match Limit :" + str(limit),font = font,fill = 'black')
+            draw.text((90,160),"Match Date :" + str(date),font = font,fill = 'black')
+            self.Cards.append(temp)
+        return self.Cards
+
+
+class Match(Event):
+    def __init__(self,no,name,date,limit,sponcers = None):
+        self.no = no
+        self.name = name 
+        self.team1 = name.split('_vs_')[0]
+        self.team2 = name.split('_vs_')[1]
+        self.date = date
+        self.limit = limit
+    def set_sponcers(self,sponcers):
+        self.sponcers = sponcers
+    def get_sponcers(self):
+        return self.sponcers
+    def get_date(self):
+        return self.date
+    def get_no(self):
+        return self.no
+    def set_limit(self,limit):
+        self.limit = limit
+    def get_limit(self):
+        return self.limit
+    def get_venue(self):
+        return "the home ground of " + self.team1
+    
+    def summary(self):
+        print(" \\ This match is played between " + self.team1 + " and " + self.team2 + " \\ ")
+        print("Date : " + self.date)
+        print("Venue : " + self.team1 + " home ground")
+    def generate_card(self):
+        temp = temp = Image.open(r"/content/ticket_background.jfif").resize((500,240))
+        font = ImageFont.truetype(r"/content/OpenSans-Light.ttf",size = 27)
+        draw = ImageDraw.Draw(temp)
+        draw.text((90,10),"Match Title :" + str(self.name),font = font,fill = 'black')
+        draw.text((40,40),"Match No: " + str(self.no),font = font,fill = 'black')
+        draw.text((40,70),"Date" + str(self.date),font = font,fill = 'black')
+        draw.text((40,100),"Home Team :" + str(self.team1),font = font,fill = 'black')
+        draw.text((40,130),"Away Team: " + str(self.team2),font = font,fill = 'black')
+        return temp
+
+
+class Ticket:
+    seats = 60000
+    counter = 0
+    seat_list = [0]
+    def __init__(self,Match_title,customer_first_name = None,customer_last_name = None,phone_no = None,seat_no = None, date=None  ):
+        Ticket.counter += 1 
+        Ticket.seats -= 1
+        customer_first_name = str(input("// Enter name //"))
+        self.CFN = customer_first_name
+        customer_last_name = str(input("// Enter name //"))
+        self.CLN = customer_last_name
+        phone_no = str(input("//Enter phone No//"))
+        self.ph = phone_no
+        self.M_T = Match_title
+        self.date = globals()[Match_title].date
+        self.id = Ticket.counter
+        self.seats_availabe = Ticket.seats
+        seat_no = int(input("Enter preferable seat no "))
+        if seat_no not in Ticket.seat_list:
+            Ticket.seat_list = Ticket.seat_list + [seat_no]
+        else:
+            while seat_no in Ticket.seat_list:
+                print("seat taken please choose  another seat ")
+                seat_no = int(input("Enter preferable seat no "))
+        self.seat_no = seat_no
+    def set_customer_first_name(self,customer_first_name):
+        self.CFN = customer_first_name
+    def get_customer_first_name(self):
+        return self.CFN
+    def set_customer_last_name(self,customer_last_name):
+        self.CLN = customer_last_name
+    def get_customer_last_name(self):
+        return self.CLN
+    def set_ph_no(self,phone_no):
+        self.ph = phone_no
+    def get_ph_no(self):
+        return self.ph
+    def get_seat_no(self):
+        return self.seat_no
+    def get_availibility(self):
+        return self.seats_available
+    def get_id(self):
+        return self.id
+    def get_Ticket(self):
+        print("\\*******\\")
+        print("date : "+ str(self.date))
+        print("ID : " + str(self.id))
+        print(self.M_T)  
+        print(self.CFN + " " +  self.CLN)
+        print( self.ph )  
+        print("seat no : " + str(self.seat_no))
+        print("\\*******\\")
+    
+    def generate_ticket(self):
+        temp = temp = Image.open(r"/content/ticket_background.jfif").resize((500,240))
+        font = ImageFont.truetype(r"/content/OpenSans-Light.ttf",size = 27)
+        draw = ImageDraw.Draw(temp)
+        draw.text((80,20),"Match : " + str(self.M_T),font = font,fill = 'black')
+        draw.text((40,50),"Customer : "  + str(self.CFN) + " "+str(self.CLN),font = font,fill = 'black')
+        draw.text((40,80),"Contact No : " + str(self.ph),font = font,fill = 'black')
+        draw.text((40,110),"Viewer ID : " + str(self.id),font = font,fill = 'black')
+        draw.text((40,140), "Seat No : " + str(self.seat_no),font = font,fill = 'black')
+        draw.text((40,170), "Date : " + str(self.date),font = font,fill = 'black')
+        return temp
+
+class calendar:
+    months = (31,28,31,30,31,30,31,31,30,31,30,31)
+        
+    date_style = "British"
+
+    @staticmethod
+    def leapyear(year):
+        """ 
+        The method leapyear returns True if the parameter year
+        is a leap year, False otherwise
+        """
+        if not year % 4 == 0:
+            return False
+        elif not year % 100 == 0:
+            return True
+        elif not year % 400 == 0:
+            return False
+        else:
+            return True
+
+
+    def __init__(self,day,mon,yr):
+        m_1 =(1,3,5,7,8,10,12)
+        m_2 = (4,6,9,11)
+
+        self.yr=yr
+        
+        if mon>0 and mon<=12:
+            self.month=mon
+        else:
+            raise ValueError("Months have to be between 1 and 12")
+
+        if self.month in m_1 and day<32 and day>0:
+            self.day=day
+        elif self.month == 2 and calendar.leapyear(self.yr) and day<30 and day>0:
+            self.day = day
+        elif self.month == 2 and not calendar.leapyear(self.yr) and day<29 and day>0:
+            self.day = day
+        elif self.month in m_2 and day<31 and day>0:
+            self.day = day
+        else:
+            raise ValueError("value of days cannot execeed 31 and 28 for mon = 2 and 29 for leap year")
+            
+        
+    def set_day(self,day):
+        m_1 =(1,3,5,7,8,10,12)
+        m_2 = (4,6,9,11)
+        if self.month in m_1 and day<32 and day>0:
+            self.day=day
+        elif self.month == 2 and calendar.leapyear(self.yr) and day<30 and day>0:
+            self.day = day
+        elif self.month == 2 and not calendar.leapyear(self.yr) and day<29 and day>0:
+            self.day = day
+        elif self.month in m_2 and day<31 and day>0:
+            self.day = day
+        else:
+            raise ValueError("value of days has to be less than max value of days for corresponding months ")
+
+    def set_month(self,mon):
+        if mon>0 and mon<=12:
+            self.month=mon
+        else:
+            raise ValueError("Months have to be between 1 and 12")
+    
+    def set_yr(self,yr):
+        self.yr = yr
+    
+    def get_day(self):
+        return self.day
+    
+    def get_month(self):
+        return self.month
+    
+    def get_yr(self):
+        return self.yr
+    
+    def __str__(self):
+        return str(self.day)+"/"+str(self.month)+"/"+str(self.yr)
+    
+    def advance(self):
+        max_days = calendar.months[self.month-1]
+        if self.month == 2 and calendar.leapyear(self.yr):
+            max_days += 1
+        if self.day == max_days:
+            self.day= 1
+            if self.month == 12:
+                self.month = 1
+                self.yr += 1
+            else:
+                self.month += 1
+        else:
+            self.day += 1
+
+        return str(self.day)+"/"+str(self.month)+"/"+str(self.yr)    
